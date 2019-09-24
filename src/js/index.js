@@ -5,21 +5,23 @@ function init () {
             zoom: 10
         }, {
             searchControlProvider: 'yandex#search'
-        }),
-        objectManager = new ymaps.ObjectManager({
-            // Чтобы метки начали кластеризоваться, выставляем опцию.
-            clusterize: true,
-            // ObjectManager принимает те же опции, что и кластеризатор.
-            gridSize: 32,
-            clusterDisableClickZoom: true
-        });
+        })
 
-       // Создание макета содержимого балуна.
-       // Макет создается с помощью фабрики макетов с помощью текстового шаблона.
+    clusterer = new ymaps.Clusterer({
+        preset: 'islands#invertedVioletClusterIcons',
+        clusterDisableClickZoom: true,
+        clusterBalloonContentLayout: "cluster#balloonCarousel"
+    
+    });
 
+    map.geoObjects.add(clusterer);
 
-        function createBaloon (e) {
+    // Создание макета содержимого балуна.
+    // Макет создается с помощью фабрики макетов с помощью текстового шаблона.
+
+    function createBaloon (e) {
         var coords = e.get('coords');
+
         
         BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
             '<form style="margin: 10px;">' +
@@ -33,7 +35,7 @@ function init () {
                 // Сначала вызываем метод build родительского класса.
                 BalloonContentLayout.superclass.build.call(this);
                 // А затем выполняем дополнительные действия.
- 
+
                 document.getElementById('counter-button').addEventListener('click', (e) => {
                     this.onCounterClick(e);
                 })
@@ -56,23 +58,25 @@ function init () {
                     balloonPanelMaxMapArea: 0
                 });
         
-                map.geoObjects.add(placemark);
-                balloon.close();
+                window.clusterer.add(placemark);
+                map.balloon.close();
             }
         });
 
-        var balloon = new ymaps.Balloon(map, {
+        map.balloon = new ymaps.Balloon(map, {
             contentLayout: BalloonContentLayout
         });
 
-        balloon.options.setParent(map.options);
-        balloon.open(coords);
+        map.balloon.options.setParent(map.options);
+        map.balloon.open(coords);
 
-       }
+    }
 
-        map.events.add('click', function (e) {
+    map.events.add('click', function (e) {
 
-        console.log(map.balloon.isOpen());     
-            createBaloon(e);      
-        });
+        if (map.balloon.isOpen()) {
+            map.balloon.close();
+        }
+        createBaloon(e);      
+    });
 }
