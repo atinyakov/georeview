@@ -1,3 +1,5 @@
+import '../css/style.css';
+
 ymaps.ready(init);
 function init () {
     var map = new ymaps.Map('map', {
@@ -7,7 +9,7 @@ function init () {
             searchControlProvider: 'yandex#search'
         })
 
-    clusterer = new ymaps.Clusterer({
+    window.clusterer = new ymaps.Clusterer({
         preset: 'islands#invertedVioletClusterIcons',
         clusterDisableClickZoom: true,
         clusterBalloonContentLayout: "cluster#balloonCarousel"
@@ -23,11 +25,12 @@ function init () {
         var coords = e.get('coords');
 
         
-        BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
-            '<form style="margin: 10px;">' +
-                '<b>{{properties.name}}</b><br />' +
-                '<i id="count"></i> ' +
-                '<a id="counter-button"> добавить </a>' +
+        var BalloonContentLayout = ymaps.templateLayoutFactory.createClass(
+            '<form class="form">' +
+                '<p class="form__address"></p>' +
+                '<input class="form__input" type=name placeholder="Имя">' +
+                '<input class="form__input" type=name placeholder="Имя">' +
+                '<a class="form__btn" id="counter-button"> добавить </a>' +
             '</form>', {
             // Переопределяем функцию build, чтобы при создании макета начинать
             // слушать событие click на кнопке-счетчике.
@@ -52,30 +55,49 @@ function init () {
                 var placemark = new ymaps.Placemark(coords, {
                     name: 'Считаем'
                 }, {
+                    balloonContentHeader: 'coords.getAddressLine()',
                     balloonContentLayout: BalloonContentLayout,
                     // Запретим замену обычного балуна на балун-панель.
                     // Если не указывать эту опцию, на картах маленького размера откроется балун-панель.
                     balloonPanelMaxMapArea: 0
                 });
+
+                placemark.events.add('balloonopen', function (e) {
+                    console.log('nen')
+                });
+
         
                 window.clusterer.add(placemark);
-                map.balloon.close();
+                window.balloon.close();
             }
         });
 
-        map.balloon = new ymaps.Balloon(map, {
+        window.balloon = new ymaps.Balloon(map, {
             contentLayout: BalloonContentLayout
         });
 
-        map.balloon.options.setParent(map.options);
-        map.balloon.open(coords);
+
+
+        window.balloon.options.setParent(map.options);
+        window.balloon.open(coords);
+
+        function getAddress(coords) {
+
+            ymaps.geocode(coords).then(res => {
+                var firstGeoObject = res.geoObjects.get(0);
+                addressLink.textContent = firstGeoObject.getAddressLine();
+            });
+        }
+
+        var addressLink = document.querySelector('.form__address');
+        getAddress(coords);
 
     }
 
     map.events.add('click', function (e) {
 
-        if (map.balloon.isOpen()) {
-            map.balloon.close();
+        if (window.balloon) {
+            window.balloon.close();
         }
         createBaloon(e);      
     });

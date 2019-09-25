@@ -1,0 +1,12 @@
+#map {
+    filter: grayscale(100%);
+    -webkit-filter: grayscale(100%); /* Chrome 19+ & Safari 6+ */
+}
+
+
+.form {
+    display: flex;
+    flex-direction: column;
+    width: 380px;
+    height: 520px;
+}
